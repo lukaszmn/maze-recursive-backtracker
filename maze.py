@@ -100,16 +100,75 @@ def drawOpening(old_x, old_y, new_x, new_y):
       clearLine(old_x, old_y, old_x, old_y + 1)
 
 
+def getIncreasingRadius(distance):
+  distance = len(visitedCells)
+  return min(0.4, 0.5 * distance / size_x / size_y)
+
+def getDecreasingRadius(distance):
+  distance = len(visitedCells)
+  """
+  assume R1 radius at D1% of max distance, R2 radius at D2% of max distance
+  then r = max_distance * b / (x + max_distance * a), where
+  a = (R2 * D2 - R1 * D1) / (R1 - R2)
+  b = R1 * D1 + R1 * a
+  Below I assumed: D1 = 0.5, R1 = 0.1; D2 = 0.05, R2 = 0.4
+  """
+  max_distance = size_x * size_y
+  r = max_distance * 0.24 / (distance + max_distance * 0.4)
+  return min(0.4, r)
+
+
+def drawDeadEnd(backing, x, y, farthestDeadEnd):
+  if not backing:
+    distance = len(visitedCells)
+
+    radius = getIncreasingRadius(distance)
+    dead_end = pyplot.Circle((x + 0.5, y + 0.5), radius=radius, fc='moccasin')
+    pyplot.gca().add_patch(dead_end)
+    
+    if distance > farthestDeadEnd['distance']:
+      farthestDeadEnd['distance'] = distance
+      farthestDeadEnd['x'] = x
+      farthestDeadEnd['y'] = y
+      if not farthestDeadEnd['marker']:
+        circle = pyplot.Circle((x + 0.5, y + 0.5), radius=radius, fc='red')
+        circle.zorder = 100
+        pyplot.gca().add_patch(circle)
+        farthestDeadEnd['marker'] = circle
+      else:
+        farthestDeadEnd['marker'].center = (x + 0.5, y + 0.5)
+        farthestDeadEnd['marker'].radius = radius
+
+
 def generateMaze():
   # starting cell
   x = randint(0, size_x - 1)
   y = randint(0, size_y - 1)
+  circle = pyplot.Circle((x + 0.5, y + 0.5), radius=0.4, fc='y')
+  pyplot.gca().add_patch(circle)
 
+  max_steps = 2 * size_x * size_y
+  step = 1
   drawClosedCell(x, y)
+  
+  backing = False
+  farthestDeadEnd = {
+    'distance': 0,
+    'x': 0,
+    'y': 0,
+    'marker': None
+  }
 
   while True:
     visitCell(x, y)
+    circle.center = (x + 0.5, y + 0.5)
+    circle.radius = getDecreasingRadius(len(visitedCells))
     #pyplot.savefig('maze\maze_{0:03}.png'.format(step))
+
+    step += 1
+    if step > max_steps:
+      print('Something went wrong?')
+      return
     
     [new_x, new_y] = getNextCell(x, y)
     
@@ -121,14 +180,18 @@ def generateMaze():
       removeCurrentCellAndIgnoreIt = visitedCells.pop()
       previousCell = visitedCells.pop()
       
+      drawDeadEnd(backing, x, y, farthestDeadEnd)
+
       x = previousCell[0]
       y = previousCell[1]
+      backing = True
 
     else:
       drawClosedCell(new_x, new_y)
       drawOpening(x, y, new_x, new_y)
       x = new_x
       y = new_y
+      backing = False
 
 
 drawMazeBorder()
