@@ -161,29 +161,41 @@ class StepController:
     if self.step > self.max_steps:
       print('Something went wrong?')
 
+class CurrentCell:
+  
+  def __init__(self, size_x, size_y):
+    self.size_x = size_x
+    self.size_y = size_y
+
+    # starting cell
+    self.x = randint(0, size_x - 1)
+    self.y = randint(0, size_y - 1)
+
+    self.marker = pyplot.Circle((self.x + 0.5, self.y + 0.5), radius=0.4, fc='y')
+    pyplot.gca().add_patch(self.marker)
+    drawClosedCell(self.x, self.y)
+
+  def redraw(self):
+    visitCell(self.x, self.y)
+    self.marker.center = (self.x + 0.5, self.y + 0.5)
+    self.marker.radius = getDecreasingRadius(len(visitedCells))
+    #pyplot.savefig('maze\maze_{0:03}.png'.format(steps.step))
+
 
 def generateMaze():
-  # starting cell
-  x = randint(0, size_x - 1)
-  y = randint(0, size_y - 1)
-  circle = pyplot.Circle((x + 0.5, y + 0.5), radius=0.4, fc='y')
-  pyplot.gca().add_patch(circle)
-  drawClosedCell(x, y)
 
+  currentCell = CurrentCell(size_x, size_y)
   steps = StepController(size_x, size_y)
   
   backing = False
   farthestDeadEnd = FarthestDeadEnd(size_x, size_y)
   
   while True:
-    visitCell(x, y)
-    circle.center = (x + 0.5, y + 0.5)
-    circle.radius = getDecreasingRadius(len(visitedCells))
-    #pyplot.savefig('maze\maze_{0:03}.png'.format(steps.step))
+    currentCell.redraw()
 
     steps.progress()
     
-    [new_x, new_y] = getNextCell(x, y)
+    [new_x, new_y] = getNextCell(currentCell.x, currentCell.y)
     
     if new_x == -1:
       # no direction is possible, go back
@@ -193,17 +205,17 @@ def generateMaze():
       removeCurrentCellAndIgnoreIt = visitedCells.pop()
       previousCell = visitedCells.pop()
       
-      farthestDeadEnd.drawDeadEnd(backing, x, y)
+      farthestDeadEnd.drawDeadEnd(backing, currentCell.x, currentCell.y)
 
-      x = previousCell[0]
-      y = previousCell[1]
+      currentCell.x = previousCell[0]
+      currentCell.y = previousCell[1]
       backing = True
 
     else:
       drawClosedCell(new_x, new_y)
-      drawOpening(x, y, new_x, new_y)
-      x = new_x
-      y = new_y
+      drawOpening(currentCell.x, currentCell.y, new_x, new_y)
+      currentCell.x = new_x
+      currentCell.y = new_y
       backing = False
 
 
