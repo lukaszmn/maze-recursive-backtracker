@@ -122,20 +122,6 @@ def drawOpening(old_x, old_y, new_x, new_y):
       clearLine(old_x, old_y, old_x, old_y + 1)
 
 
-def getDecreasingRadius(distance):
-  distance = len(visitedCells)
-  """
-  assume R1 radius at D1% of max distance, R2 radius at D2% of max distance
-  then r = max_distance * b / (x + max_distance * a), where
-  a = (R2 * D2 - R1 * D1) / (R1 - R2)
-  b = R1 * D1 + R1 * a
-  Below I assumed: D1 = 0.5, R1 = 0.1; D2 = 0.05, R2 = 0.4
-  """
-  max_distance = size_x * size_y
-  r = max_distance * 0.24 / (distance + max_distance * 0.4)
-  return min(0.4, r)
-
-
 class FarthestDeadEnd:
   
   def __init__(self, size_x, size_y):
@@ -183,6 +169,7 @@ class StepController:
     if self.step > self.max_steps:
       print('Something went wrong?')
 
+
 class CurrentCell:
   
   def __init__(self, size_x, size_y):
@@ -201,7 +188,7 @@ class CurrentCell:
   def redraw(self):
     visitCell(self.x, self.y)
     self.marker.center = (self.x + 0.5, self.y + 0.5)
-    self.marker.radius = getDecreasingRadius(len(visitedCells))
+    self.marker.radius = self.getDecreasingRadius()
     #pyplot.savefig('maze\maze_{0:03}.png'.format(steps.step))
   
   def moveForward(self, new_x, new_y):
@@ -215,6 +202,19 @@ class CurrentCell:
     self.x = old_x
     self.y = old_y
     self.backing = True
+
+  def getDecreasingRadius(self):
+    distance = len(visitedCells)
+    """
+    assume R1 radius at D1% of max distance, R2 radius at D2% of max distance
+    then r = max_distance * b / (x + max_distance * a), where
+    a = (R2 * D2 - R1 * D1) / (R1 - R2)
+    b = R1 * D1 + R1 * a
+    Below I assumed: D1 = 0.5, R1 = 0.1; D2 = 0.05, R2 = 0.4
+    """
+    max_distance = self.size_x * self.size_y
+    r = max_distance * 0.24 / (distance + max_distance * 0.4)
+    return min(0.4, r)
 
 
 def generateMaze():
