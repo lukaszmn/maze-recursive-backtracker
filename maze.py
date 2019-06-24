@@ -43,39 +43,45 @@ def visitCell(x, y):
   visitedCells.append([x, y])
 
 
-def getValidDirections(x, y):
-  validDirections = []
-
-  if (validCell(x, y + 1)):
-    validDirections.append([x, y + 1])
-  if (validCell(x + 1, y)):
-    validDirections.append([x + 1, y])
-  if (validCell(x, y - 1)):
-    validDirections.append([x, y - 1])
-  if (validCell(x - 1, y)):
-    validDirections.append([x - 1, y])
-
-  return validDirections
-
-
-def getNextCell(x, y):
-  validDirections = getValidDirections(x, y)
+class MazeRules:
   
-  if len(validDirections) == 0:
-    return [-1, -1]
+  def __init__(self, size_x, size_y):
+    self.size_x = size_x
+    self.size_y = size_y
+  
+  def getNextCell(self, x, y):
+    validDirections = self.getValidDirections(x, y)
+    
+    if len(validDirections) == 0:
+      return [-1, -1]
+  
+    dir = randint(0, len(validDirections) - 1)
+    return validDirections[dir]
 
-  dir = randint(0, len(validDirections) - 1)
-  return validDirections[dir]
-
-
-def validCell(x, y):
-  if x < 0 or y < 0:
-    return False
-  if x >= size_x or y >= size_y:
-    return False
-  if visitedMaze[x][y]:
-    return False
-  return True
+  
+  def getValidDirections(self, x, y):
+    validDirections = []
+  
+    if (self.validCell(x, y + 1)):
+      validDirections.append([x, y + 1])
+    if (self.validCell(x + 1, y)):
+      validDirections.append([x + 1, y])
+    if (self.validCell(x, y - 1)):
+      validDirections.append([x, y - 1])
+    if (self.validCell(x - 1, y)):
+      validDirections.append([x - 1, y])
+  
+    return validDirections
+  
+  
+  def validCell(self, x, y):
+    if x < 0 or y < 0:
+      return False
+    if x >= self.size_x or y >= self.size_y:
+      return False
+    if visitedMaze[x][y]:
+      return False
+    return True
 
 
 def drawClosedCell(x, y):
@@ -194,6 +200,7 @@ def generateMaze():
 
   currentCell = CurrentCell(size_x, size_y)
   steps = StepController(size_x, size_y)
+  mazeRules = MazeRules(size_x, size_y)
   
   farthestDeadEnd = FarthestDeadEnd(size_x, size_y)
   
@@ -202,7 +209,7 @@ def generateMaze():
 
     steps.progress()
     
-    [new_x, new_y] = getNextCell(currentCell.x, currentCell.y)
+    [new_x, new_y] = mazeRules.getNextCell(currentCell.x, currentCell.y)
     
     if new_x == -1:
       # no direction is possible, go back
