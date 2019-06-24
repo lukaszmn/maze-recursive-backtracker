@@ -11,8 +11,8 @@ size_y = 6
 class MazeDrawer:
   
   def __init__(self, size_x, size_y):
-    self.size_x = size_x
-    self.size_y = size_y
+    self.__size_x = size_x
+    self.__size_y = size_y
   
   
   def drawBackgroundAndBorder(self, ratio = 8):
@@ -51,8 +51,8 @@ class MazeDrawer:
 
 
   def __drawBackground(self, ratio):
-    scale = max(self.size_x, self.size_y) / ratio
-    pyplot.figure(figsize=(self.size_x / scale, self.size_y / scale))
+    scale = max(self.__size_x, self.__size_y) / ratio
+    pyplot.figure(figsize=(self.__size_x / scale, self.__size_y / scale))
 
     #pyplot.xticks([])
     #pyplot.yticks([])
@@ -60,10 +60,10 @@ class MazeDrawer:
 
 
   def __drawMazeBorder(self):
-    self.__line(0, 0, size_x, 0)
-    self.__line(0, 0, 0, size_y)
-    self.__line(self.size_x, 0, self.size_x, self.size_y)
-    self.__line(0, self.size_y, self.size_x, self.size_y)
+    self.__line(0, 0, self.__size_x, 0)
+    self.__line(0, 0, 0, self.__size_y)
+    self.__line(self.__size_x, 0, self.__size_x, self.__size_y)
+    self.__line(0, self.__size_y, self.__size_x, self.__size_y)
 
 
 # True or False if cell was visited, visited[x][y] = False
@@ -81,8 +81,8 @@ def visitCell(x, y):
 class MazeRules:
   
   def __init__(self, size_x, size_y):
-    self.size_x = size_x
-    self.size_y = size_y
+    self.__size_x = size_x
+    self.__size_y = size_y
   
   def getNextCell(self, x, y):
     validDirections = self.getValidDirections(x, y)
@@ -113,7 +113,7 @@ class MazeRules:
   def validCell(self, x, y):
     if x < 0 or y < 0:
       return False
-    if x >= self.size_x or y >= self.size_y:
+    if x >= self.__size_x or y >= self.__size_y:
       return False
     if visitedMaze[x][y]:
       return False
@@ -138,8 +138,8 @@ class MazeRules:
 class FarthestDeadEnd:
   
   def __init__(self, size_x, size_y):
-    self.size_x = size_x
-    self.size_y = size_y
+    self.__size_x = size_x
+    self.__size_y = size_y
     self.max_distance = 0
     self.x = 0
     self.y = 0
@@ -168,7 +168,7 @@ class FarthestDeadEnd:
 
   def getIncreasingRadius(self, distance):
     distance = len(visitedCells)
-    return min(0.4, 0.5 * distance / self.size_x / self.size_y)
+    return min(0.4, 0.5 * distance / self.__size_x / self.__size_y)
 
 
 class StepController:
@@ -186,8 +186,8 @@ class StepController:
 class CurrentCell:
   
   def __init__(self, size_x, size_y, mazeDrawer):
-    self.size_x = size_x
-    self.size_y = size_y
+    self.__size_x = size_x
+    self.__size_y = size_y
     self.backing = False
 
     self.mazeDrawer = mazeDrawer
@@ -227,12 +227,12 @@ class CurrentCell:
     b = R1 * D1 + R1 * a
     Below I assumed: D1 = 0.5, R1 = 0.1; D2 = 0.05, R2 = 0.4
     """
-    max_distance = self.size_x * self.size_y
+    max_distance = self.__size_x * self.__size_y
     r = max_distance * 0.24 / (distance + max_distance * 0.4)
     return min(0.4, r)
 
 
-def generateMaze(mazeDrawer):
+def generateMaze(size_x, size_y, mazeDrawer):
 
   currentCell = CurrentCell(size_x, size_y, mazeDrawer)
   steps = StepController(size_x, size_y)
@@ -265,5 +265,5 @@ def generateMaze(mazeDrawer):
 
 mazeDrawer = MazeDrawer(size_x, size_y)
 mazeDrawer.drawBackgroundAndBorder(8)
-generateMaze(mazeDrawer)
+generateMaze(size_x, size_y, mazeDrawer)
 #pyplot.show()
