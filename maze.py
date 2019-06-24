@@ -140,16 +140,27 @@ def drawDeadEnd(backing, x, y, farthestDeadEnd):
         farthestDeadEnd['marker'].radius = radius
 
 
+class StepController:
+
+  def __init__(self, size_x, size_y):
+    self.max_steps = 2 * size_x * size_y
+    self.step = 1
+
+  def progress(self):
+    self.step += 1
+    if self.step > self.max_steps:
+      print('Something went wrong?')
+
+
 def generateMaze():
   # starting cell
   x = randint(0, size_x - 1)
   y = randint(0, size_y - 1)
   circle = pyplot.Circle((x + 0.5, y + 0.5), radius=0.4, fc='y')
   pyplot.gca().add_patch(circle)
-
-  max_steps = 2 * size_x * size_y
-  step = 1
   drawClosedCell(x, y)
+
+  steps = StepController(size_x, size_y)
   
   backing = False
   farthestDeadEnd = {
@@ -163,12 +174,9 @@ def generateMaze():
     visitCell(x, y)
     circle.center = (x + 0.5, y + 0.5)
     circle.radius = getDecreasingRadius(len(visitedCells))
-    #pyplot.savefig('maze\maze_{0:03}.png'.format(step))
+    #pyplot.savefig('maze\maze_{0:03}.png'.format(steps.step))
 
-    step += 1
-    if step > max_steps:
-      print('Something went wrong?')
-      return
+    steps.progress()
     
     [new_x, new_y] = getNextCell(x, y)
     
