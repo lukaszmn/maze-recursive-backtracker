@@ -118,26 +118,34 @@ def getDecreasingRadius(distance):
   return min(0.4, r)
 
 
-def drawDeadEnd(backing, x, y, farthestDeadEnd):
-  if not backing:
-    distance = len(visitedCells)
+class FarthestDeadEnd:
+  
+  def __init__(self):
+    self.max_distance = 0
+    self.x = 0
+    self.y = 0
+    self.marker = None
 
-    radius = getIncreasingRadius(distance)
-    dead_end = pyplot.Circle((x + 0.5, y + 0.5), radius=radius, fc='moccasin')
-    pyplot.gca().add_patch(dead_end)
-    
-    if distance > farthestDeadEnd['distance']:
-      farthestDeadEnd['distance'] = distance
-      farthestDeadEnd['x'] = x
-      farthestDeadEnd['y'] = y
-      if not farthestDeadEnd['marker']:
-        circle = pyplot.Circle((x + 0.5, y + 0.5), radius=radius, fc='red')
-        circle.zorder = 100
-        pyplot.gca().add_patch(circle)
-        farthestDeadEnd['marker'] = circle
-      else:
-        farthestDeadEnd['marker'].center = (x + 0.5, y + 0.5)
-        farthestDeadEnd['marker'].radius = radius
+  def drawDeadEnd(self, backing, x, y):
+    if not backing:
+      distance = len(visitedCells)
+      radius = getIncreasingRadius(distance)
+
+      dead_end = pyplot.Circle((x + 0.5, y + 0.5), radius=radius, fc='moccasin')
+      pyplot.gca().add_patch(dead_end)
+      
+      if distance > self.max_distance:
+        self.max_distance = distance
+        self.x = x
+        self.y = y
+        if not self.marker:
+          circle = pyplot.Circle((x + 0.5, y + 0.5), radius=radius, fc='red')
+          circle.zorder = 100
+          pyplot.gca().add_patch(circle)
+          self.marker = circle
+        else:
+          self.marker.center = (x + 0.5, y + 0.5)
+          self.marker.radius = radius
 
 
 class StepController:
@@ -163,13 +171,8 @@ def generateMaze():
   steps = StepController(size_x, size_y)
   
   backing = False
-  farthestDeadEnd = {
-    'distance': 0,
-    'x': 0,
-    'y': 0,
-    'marker': None
-  }
-
+  farthestDeadEnd = FarthestDeadEnd()
+  
   while True:
     visitCell(x, y)
     circle.center = (x + 0.5, y + 0.5)
@@ -188,7 +191,7 @@ def generateMaze():
       removeCurrentCellAndIgnoreIt = visitedCells.pop()
       previousCell = visitedCells.pop()
       
-      drawDeadEnd(backing, x, y, farthestDeadEnd)
+      farthestDeadEnd.drawDeadEnd(backing, x, y)
 
       x = previousCell[0]
       y = previousCell[1]
