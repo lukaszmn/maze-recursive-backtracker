@@ -66,24 +66,27 @@ class MazeDrawer:
     self.__line(0, self.__size_y, self.__size_x, self.__size_y)
 
 
-# True or False if cell was visited, visited[x][y] = False
-visitedMaze = [ [ False for y in range( size_y ) ] for x in range( size_x ) ]
-
-# stack of visited cells; each item is [x, y]
-visitedCells = []
-
-
-def visitCell(x, y):
-  visitedMaze[x][y] = True
-  visitedCells.append([x, y])
-
-
 class MazeRules:
   
   def __init__(self, size_x, size_y):
     self.__size_x = size_x
     self.__size_y = size_y
+
+    # True or False if cell was visited, visited[x][y] = False
+    self.__visitedMaze = [ [ False for y in range( size_y ) ] for x in range( size_x ) ]
+    
+    # stack of visited cells; each item is [x, y]
+    self.__visitedCells = []
   
+  
+  def getPathLength(self):
+    return len(self.__visitedCells)
+
+
+  def visitCell(self, x, y):
+    self.__visitedMaze[x][y] = True
+    self.__visitedCells.append([x, y])
+
 
   def getNextCell(self, x, y):
     validDirections = self.__getValidDirections(x, y)
@@ -97,15 +100,15 @@ class MazeRules:
   
 
   def getPreviousCell(self):
-    if len(visitedCells) <= 1:
+    if self.getPathLength() <= 1:
       # no more options - maze is complete
       return self.Result.Failure(self)
 
-    removeCurrentCellAndIgnoreIt = visitedCells.pop()
-    previousCell = visitedCells.pop()
+    removeCurrentCellAndIgnoreIt = self.__visitedCells.pop()
+    previousCell = self.__visitedCells.pop()
     return self.Result.Success(self, previousCell[0], previousCell[1])
-
   
+
   def __getValidDirections(self, x, y):
     validDirections = []
   
@@ -126,7 +129,7 @@ class MazeRules:
       return False
     if x >= self.__size_x or y >= self.__size_y:
       return False
-    if visitedMaze[x][y]:
+    if self.__visitedMaze[x][y]:
       return False
     return True
 
@@ -148,17 +151,18 @@ class MazeRules:
 
 class FarthestDeadEnd:
   
-  def __init__(self, size_x, size_y):
+  def __init__(self, size_x, size_y, mazeRules):
     self.__size_x = size_x
     self.__size_y = size_y
     self.__max_distance = 0
     self.__x = 0
     self.__y = 0
     self.__marker = None
+    self.__mazeRules = mazeRules
 
   def drawDeadEnd(self, backing, x, y):
     if not backing:
-      distance = len(visitedCells)
+      distance = self.__mazeRules.getPathLength()
       radius = self.__getIncreasingRadius(distance)
 
       dead_end = pyplot.Circle((x + 0.5, y + 0.5), radius=radius, fc='moccasin')
@@ -178,7 +182,7 @@ class FarthestDeadEnd:
           self.__marker.radius = radius
 
   def __getIncreasingRadius(self, distance):
-    distance = len(visitedCells)
+    distance = self.__mazeRules.getPathLength()
     return min(0.4, 0.5 * distance / self.__size_x / self.__size_y)
 
 
@@ -196,12 +200,13 @@ class StepController:
 
 class CurrentCell:
   
-  def __init__(self, size_x, size_y, mazeDrawer):
+  def __init__(self, size_x, size_y, mazeDrawer, mazeRules):
     self.__size_x = size_x
     self.__size_y = size_y
     self.__backing = False
 
     self.__mazeDrawer = mazeDrawer
+    self.__mazeRules = mazeRules
 
     # starting cell
     self.__x = randint(0, size_x - 1)
@@ -221,7 +226,7 @@ class CurrentCell:
     return self.__backing
 
   def redraw(self):
-    visitCell(self.__x, self.__y)
+    self.__mazeRules.visitCell(self.__x, self.__y)
     self.__marker.center = (self.__x + 0.5, self.__y + 0.5)
     self.__marker.radius = self.__getDecreasingRadius()
     #pyplot.savefig('maze\maze_{0:03}.png'.format(steps.step))
@@ -239,7 +244,7 @@ class CurrentCell:
     self.__backing = True
 
   def __getDecreasingRadius(self):
-    distance = len(visitedCells)
+    distance = self.__mazeRules.getPathLength()
     """
     assume R1 radius at D1% of max distance, R2 radius at D2% of max distance
     then r = max_distance * b / (x + max_distance * a), where
@@ -254,11 +259,11 @@ class CurrentCell:
 
 def generateMaze(size_x, size_y, mazeDrawer):
 
-  currentCell = CurrentCell(size_x, size_y, mazeDrawer)
-  steps = StepController(size_x, size_y)
   mazeRules = MazeRules(size_x, size_y)
+  currentCell = CurrentCell(size_x, size_y, mazeDrawer, mazeRules)
+  steps = StepController(size_x, size_y)
   
-  farthestDeadEnd = FarthestDeadEnd(size_x, size_y)
+  farthestDeadEnd = FarthestDeadEnd(size_x, size_y, mazeRules)
   
   while True:
     currentCell.redraw()
@@ -270,13 +275,13 @@ def generateMaze(size_x, size_y, mazeDrawer):
     if nextCell.noValidMovement:
       # no direction is possible, go back
       previousCell = mazeRules.getPreviousCell()
+
       if previousCell.noValidMovement:
         # no more options - maze is complete
         break
-      
-      farthestDeadEnd.drawDeadEnd(currentCell.get_backing(), currentCell.get_x(), currentCell.get_y())
-
-      currentCell.goBack(previousCell.new_x, previousCell.new_y)
+      else:
+        farthestDeadEnd.drawDeadEnd(currentCell.get_backing(), currentCell.get_x(), currentCell.get_y())
+        currentCell.goBack(previousCell.new_x, previousCell.new_y)
 
     else:
       currentCell.moveForward(nextCell.new_x, nextCell.new_y)
