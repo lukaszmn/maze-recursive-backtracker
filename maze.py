@@ -8,27 +8,62 @@ size_y = 6
 #seed(1)
 
 
-scale = max(size_x, size_y) / 8
-
-pyplot.figure(figsize=(size_x/scale, size_y/scale))
-#pyplot.xticks([])
-#pyplot.yticks([])
-pyplot.style.use('dark_background')
-
-
-def line(x1, y1, x2, y2):
-  pyplot.plot([x1, x2], [y1, y2], color='white')
-
-def clearLine(x1, y1, x2, y2):
-  pyplot.plot([x1, x2], [y1, y2], color='black')
+class MazeDrawer:
+  
+  def __init__(self, size_x, size_y):
+    self.size_x = size_x
+    self.size_y = size_y
+  
+  
+  def drawBackgroundAndBorder(self, ratio = 8):
+    self.__drawBackground(ratio)
+    self.__drawMazeBorder()
 
 
-# maze's border
-def drawMazeBorder():
-  line(0, 0, size_x, 0)
-  line(0, 0, 0, size_y)
-  line(size_x, 0, size_x, size_y)
-  line(0, size_y, size_x, size_y)
+  def drawClosedCell(self, x, y):
+    self.__line(x, y + 1, x + 1, y + 1)
+    self.__line(x, y, x + 1, y)
+    self.__line(x + 1, y, x + 1, y + 1)
+    self.__line(x, y, x, y + 1)
+  
+  
+  def drawOpening(self, old_x, old_y, new_x, new_y):  
+    if old_x == new_x:
+      # only Y changed
+      if old_y < new_y:
+        self.__clearLine(old_x, old_y + 1, old_x + 1, old_y + 1)
+      else:
+        self.__clearLine(old_x, old_y, old_x + 1, old_y)
+    else:
+      # only X changed
+      if old_x < new_x:
+        self.__clearLine(old_x + 1, old_y, old_x + 1, old_y + 1)
+      else:
+        self.__clearLine(old_x, old_y, old_x, old_y + 1)
+
+
+  def __line(self, x1, y1, x2, y2):
+    pyplot.plot([x1, x2], [y1, y2], color='white')
+  
+
+  def __clearLine(self, x1, y1, x2, y2):
+    pyplot.plot([x1, x2], [y1, y2], color='black')
+
+
+  def __drawBackground(self, ratio):
+    scale = max(self.size_x, self.size_y) / ratio
+    pyplot.figure(figsize=(self.size_x / scale, self.size_y / scale))
+
+    #pyplot.xticks([])
+    #pyplot.yticks([])
+    pyplot.style.use('dark_background')
+
+
+  def __drawMazeBorder(self):
+    self.__line(0, 0, size_x, 0)
+    self.__line(0, 0, 0, size_y)
+    self.__line(self.size_x, 0, self.size_x, self.size_y)
+    self.__line(0, self.size_y, self.size_x, self.size_y)
 
 
 # True or False if cell was visited, visited[x][y] = False
@@ -100,28 +135,6 @@ class MazeRules:
       return parent.Result(False, new_x, new_y)
 
 
-def drawClosedCell(x, y):
-  line(x, y + 1, x + 1, y + 1)
-  line(x, y, x + 1, y)
-  line(x + 1, y, x + 1, y + 1)
-  line(x, y, x, y + 1)
-
-
-def drawOpening(old_x, old_y, new_x, new_y):  
-  if old_x == new_x:
-    # only Y changed
-    if old_y < new_y:
-      clearLine(old_x, old_y + 1, old_x + 1, old_y + 1)
-    else:
-      clearLine(old_x, old_y, old_x + 1, old_y)
-  else:
-    # only X changed
-    if old_x < new_x:
-      clearLine(old_x + 1, old_y, old_x + 1, old_y + 1)
-    else:
-      clearLine(old_x, old_y, old_x, old_y + 1)
-
-
 class FarthestDeadEnd:
   
   def __init__(self, size_x, size_y):
@@ -172,10 +185,12 @@ class StepController:
 
 class CurrentCell:
   
-  def __init__(self, size_x, size_y):
+  def __init__(self, size_x, size_y, mazeDrawer):
     self.size_x = size_x
     self.size_y = size_y
     self.backing = False
+
+    self.mazeDrawer = mazeDrawer
 
     # starting cell
     self.x = randint(0, size_x - 1)
@@ -183,7 +198,7 @@ class CurrentCell:
 
     self.marker = pyplot.Circle((self.x + 0.5, self.y + 0.5), radius=0.4, fc='y')
     pyplot.gca().add_patch(self.marker)
-    drawClosedCell(self.x, self.y)
+    self.mazeDrawer.drawClosedCell(self.x, self.y)
 
   def redraw(self):
     visitCell(self.x, self.y)
@@ -192,8 +207,8 @@ class CurrentCell:
     #pyplot.savefig('maze\maze_{0:03}.png'.format(steps.step))
   
   def moveForward(self, new_x, new_y):
-    drawClosedCell(new_x, new_y)
-    drawOpening(self.x, self.y, new_x, new_y)
+    self.mazeDrawer.drawClosedCell(new_x, new_y)
+    self.mazeDrawer.drawOpening(self.x, self.y, new_x, new_y)
     self.x = new_x
     self.y = new_y
     self.backing = False
@@ -217,9 +232,9 @@ class CurrentCell:
     return min(0.4, r)
 
 
-def generateMaze():
+def generateMaze(mazeDrawer):
 
-  currentCell = CurrentCell(size_x, size_y)
+  currentCell = CurrentCell(size_x, size_y, mazeDrawer)
   steps = StepController(size_x, size_y)
   mazeRules = MazeRules(size_x, size_y)
   
@@ -248,6 +263,7 @@ def generateMaze():
       currentCell.moveForward(nextCell.new_x, nextCell.new_y)
 
 
-drawMazeBorder()
-generateMaze()
+mazeDrawer = MazeDrawer(size_x, size_y)
+mazeDrawer.drawBackgroundAndBorder(8)
+generateMaze(mazeDrawer)
 #pyplot.show()
