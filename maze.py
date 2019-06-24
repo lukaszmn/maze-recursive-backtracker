@@ -166,6 +166,7 @@ class CurrentCell:
   def __init__(self, size_x, size_y):
     self.size_x = size_x
     self.size_y = size_y
+    self.backing = False
 
     # starting cell
     self.x = randint(0, size_x - 1)
@@ -180,6 +181,13 @@ class CurrentCell:
     self.marker.center = (self.x + 0.5, self.y + 0.5)
     self.marker.radius = getDecreasingRadius(len(visitedCells))
     #pyplot.savefig('maze\maze_{0:03}.png'.format(steps.step))
+  
+  def moveForward(self, new_x, new_y):
+    drawClosedCell(new_x, new_y)
+    drawOpening(self.x, self.y, new_x, new_y)
+    self.x = new_x
+    self.y = new_y
+    self.backing = False
 
 
 def generateMaze():
@@ -187,7 +195,6 @@ def generateMaze():
   currentCell = CurrentCell(size_x, size_y)
   steps = StepController(size_x, size_y)
   
-  backing = False
   farthestDeadEnd = FarthestDeadEnd(size_x, size_y)
   
   while True:
@@ -205,18 +212,14 @@ def generateMaze():
       removeCurrentCellAndIgnoreIt = visitedCells.pop()
       previousCell = visitedCells.pop()
       
-      farthestDeadEnd.drawDeadEnd(backing, currentCell.x, currentCell.y)
+      farthestDeadEnd.drawDeadEnd(currentCell.backing, currentCell.x, currentCell.y)
 
       currentCell.x = previousCell[0]
       currentCell.y = previousCell[1]
-      backing = True
+      currentCell.backing = True
 
     else:
-      drawClosedCell(new_x, new_y)
-      drawOpening(currentCell.x, currentCell.y, new_x, new_y)
-      currentCell.x = new_x
-      currentCell.y = new_y
-      backing = False
+      currentCell.moveForward(new_x, new_y)
 
 
 drawMazeBorder()
