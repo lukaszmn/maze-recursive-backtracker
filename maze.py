@@ -211,6 +211,11 @@ class CurrentCell:
     self.y = new_y
     self.backing = False
 
+  def goBack(self, old_x, old_y):
+    self.x = old_x
+    self.y = old_y
+    self.backing = True
+
 
 def generateMaze():
 
@@ -237,9 +242,7 @@ def generateMaze():
       
       farthestDeadEnd.drawDeadEnd(currentCell.backing, currentCell.x, currentCell.y)
 
-      currentCell.x = previousCell[0]
-      currentCell.y = previousCell[1]
-      currentCell.backing = True
+      currentCell.goBack(previousCell[0], previousCell[1])
 
     else:
       currentCell.moveForward(nextCell.new_x, nextCell.new_y)
