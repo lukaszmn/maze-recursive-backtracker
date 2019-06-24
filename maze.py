@@ -84,6 +84,7 @@ class MazeRules:
     self.__size_x = size_x
     self.__size_y = size_y
   
+
   def getNextCell(self, x, y):
     validDirections = self.__getValidDirections(x, y)
     
@@ -93,6 +94,16 @@ class MazeRules:
     index = randint(0, len(validDirections) - 1)
     dir = validDirections[index]
     return self.Result.Success(self, dir[0], dir[1])
+  
+
+  def getPreviousCell(self):
+    if len(visitedCells) <= 1:
+      # no more options - maze is complete
+      return self.Result.Failure(self)
+
+    removeCurrentCellAndIgnoreIt = visitedCells.pop()
+    previousCell = visitedCells.pop()
+    return self.Result.Success(self, previousCell[0], previousCell[1])
 
   
   def __getValidDirections(self, x, y):
@@ -258,15 +269,14 @@ def generateMaze(size_x, size_y, mazeDrawer):
     
     if nextCell.noValidMovement:
       # no direction is possible, go back
-      if len(visitedCells) <= 1:
+      previousCell = mazeRules.getPreviousCell()
+      if previousCell.noValidMovement:
         # no more options - maze is complete
         break
-      removeCurrentCellAndIgnoreIt = visitedCells.pop()
-      previousCell = visitedCells.pop()
       
       farthestDeadEnd.drawDeadEnd(currentCell.get_backing(), currentCell.get_x(), currentCell.get_y())
 
-      currentCell.goBack(previousCell[0], previousCell[1])
+      currentCell.goBack(previousCell.new_x, previousCell.new_y)
 
     else:
       currentCell.moveForward(nextCell.new_x, nextCell.new_y)
