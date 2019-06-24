@@ -2,9 +2,6 @@ import matplotlib.pyplot as pyplot
 from random import randint, seed
 
 
-size_x = 10
-size_y = 6
-
 #seed(1)
 
 
@@ -257,7 +254,10 @@ class CurrentCell:
     return min(0.4, r)
 
 
-def generateMaze(size_x, size_y, mazeDrawer):
+def generateMaze(size_x, size_y):
+
+  mazeDrawer = MazeDrawer(size_x, size_y)
+  mazeDrawer.drawBackgroundAndBorder(8)
 
   mazeRules = MazeRules(size_x, size_y)
   currentCell = CurrentCell(size_x, size_y, mazeDrawer, mazeRules)
@@ -287,7 +287,4 @@ def generateMaze(size_x, size_y, mazeDrawer):
       currentCell.moveForward(nextCell.new_x, nextCell.new_y)
 
 
-mazeDrawer = MazeDrawer(size_x, size_y)
-mazeDrawer.drawBackgroundAndBorder(8)
-generateMaze(size_x, size_y, mazeDrawer)
-#pyplot.show()
+generateMaze(10, 6)
