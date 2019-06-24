@@ -100,10 +100,6 @@ def drawOpening(old_x, old_y, new_x, new_y):
       clearLine(old_x, old_y, old_x, old_y + 1)
 
 
-def getIncreasingRadius(distance):
-  distance = len(visitedCells)
-  return min(0.4, 0.5 * distance / size_x / size_y)
-
 def getDecreasingRadius(distance):
   distance = len(visitedCells)
   """
@@ -120,7 +116,9 @@ def getDecreasingRadius(distance):
 
 class FarthestDeadEnd:
   
-  def __init__(self):
+  def __init__(self, size_x, size_y):
+    self.size_x = size_x
+    self.size_y = size_y
     self.max_distance = 0
     self.x = 0
     self.y = 0
@@ -129,7 +127,7 @@ class FarthestDeadEnd:
   def drawDeadEnd(self, backing, x, y):
     if not backing:
       distance = len(visitedCells)
-      radius = getIncreasingRadius(distance)
+      radius = self.getIncreasingRadius(distance)
 
       dead_end = pyplot.Circle((x + 0.5, y + 0.5), radius=radius, fc='moccasin')
       pyplot.gca().add_patch(dead_end)
@@ -146,6 +144,10 @@ class FarthestDeadEnd:
         else:
           self.marker.center = (x + 0.5, y + 0.5)
           self.marker.radius = radius
+
+  def getIncreasingRadius(self, distance):
+    distance = len(visitedCells)
+    return min(0.4, 0.5 * distance / self.size_x / self.size_y)
 
 
 class StepController:
@@ -171,7 +173,7 @@ def generateMaze():
   steps = StepController(size_x, size_y)
   
   backing = False
-  farthestDeadEnd = FarthestDeadEnd()
+  farthestDeadEnd = FarthestDeadEnd(size_x, size_y)
   
   while True:
     visitCell(x, y)
