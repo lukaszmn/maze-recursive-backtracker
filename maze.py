@@ -85,7 +85,7 @@ class MazeRules:
     self.__size_y = size_y
   
   def getNextCell(self, x, y):
-    validDirections = self.getValidDirections(x, y)
+    validDirections = self.__getValidDirections(x, y)
     
     if len(validDirections) == 0:
       return self.Result.Failure(self)
@@ -95,22 +95,22 @@ class MazeRules:
     return self.Result.Success(self, dir[0], dir[1])
 
   
-  def getValidDirections(self, x, y):
+  def __getValidDirections(self, x, y):
     validDirections = []
   
-    if (self.validCell(x, y + 1)):
+    if (self.__validCell(x, y + 1)):
       validDirections.append([x, y + 1])
-    if (self.validCell(x + 1, y)):
+    if (self.__validCell(x + 1, y)):
       validDirections.append([x + 1, y])
-    if (self.validCell(x, y - 1)):
+    if (self.__validCell(x, y - 1)):
       validDirections.append([x, y - 1])
-    if (self.validCell(x - 1, y)):
+    if (self.__validCell(x - 1, y)):
       validDirections.append([x - 1, y])
   
     return validDirections
   
   
-  def validCell(self, x, y):
+  def __validCell(self, x, y):
     if x < 0 or y < 0:
       return False
     if x >= self.__size_x or y >= self.__size_y:
@@ -140,33 +140,33 @@ class FarthestDeadEnd:
   def __init__(self, size_x, size_y):
     self.__size_x = size_x
     self.__size_y = size_y
-    self.max_distance = 0
-    self.x = 0
-    self.y = 0
-    self.marker = None
+    self.__max_distance = 0
+    self.__x = 0
+    self.__y = 0
+    self.__marker = None
 
   def drawDeadEnd(self, backing, x, y):
     if not backing:
       distance = len(visitedCells)
-      radius = self.getIncreasingRadius(distance)
+      radius = self.__getIncreasingRadius(distance)
 
       dead_end = pyplot.Circle((x + 0.5, y + 0.5), radius=radius, fc='moccasin')
       pyplot.gca().add_patch(dead_end)
       
-      if distance > self.max_distance:
-        self.max_distance = distance
-        self.x = x
-        self.y = y
-        if not self.marker:
+      if distance > self.__max_distance:
+        self.__max_distance = distance
+        self.__x = x
+        self.__y = y
+        if not self.__marker:
           circle = pyplot.Circle((x + 0.5, y + 0.5), radius=radius, fc='red')
           circle.zorder = 100
           pyplot.gca().add_patch(circle)
-          self.marker = circle
+          self.__marker = circle
         else:
-          self.marker.center = (x + 0.5, y + 0.5)
-          self.marker.radius = radius
+          self.__marker.center = (x + 0.5, y + 0.5)
+          self.__marker.radius = radius
 
-  def getIncreasingRadius(self, distance):
+  def __getIncreasingRadius(self, distance):
     distance = len(visitedCells)
     return min(0.4, 0.5 * distance / self.__size_x / self.__size_y)
 
