@@ -53,10 +53,11 @@ class MazeRules:
     validDirections = self.getValidDirections(x, y)
     
     if len(validDirections) == 0:
-      return [-1, -1]
+      return self.Result.Failure(self)
   
-    dir = randint(0, len(validDirections) - 1)
-    return validDirections[dir]
+    index = randint(0, len(validDirections) - 1)
+    dir = validDirections[index]
+    return self.Result.Success(self, dir[0], dir[1])
 
   
   def getValidDirections(self, x, y):
@@ -82,6 +83,21 @@ class MazeRules:
     if visitedMaze[x][y]:
       return False
     return True
+
+
+  class Result:
+    def __init__(self, noValidMovement, new_x, new_y):
+      self.noValidMovement = noValidMovement
+      self.new_x = new_x
+      self.new_y = new_y
+
+    @staticmethod
+    def Failure(parent):
+      return parent.Result(True, -1, -1)
+    
+    @staticmethod
+    def Success(parent, new_x, new_y):
+      return parent.Result(False, new_x, new_y)
 
 
 def drawClosedCell(x, y):
@@ -209,9 +225,9 @@ def generateMaze():
 
     steps.progress()
     
-    [new_x, new_y] = mazeRules.getNextCell(currentCell.x, currentCell.y)
+    nextCell = mazeRules.getNextCell(currentCell.x, currentCell.y)
     
-    if new_x == -1:
+    if nextCell.noValidMovement:
       # no direction is possible, go back
       if len(visitedCells) <= 1:
         # no more options - maze is complete
@@ -226,7 +242,7 @@ def generateMaze():
       currentCell.backing = True
 
     else:
-      currentCell.moveForward(new_x, new_y)
+      currentCell.moveForward(nextCell.new_x, nextCell.new_y)
 
 
 drawMazeBorder()
