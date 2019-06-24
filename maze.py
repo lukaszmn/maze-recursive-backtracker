@@ -174,12 +174,12 @@ class FarthestDeadEnd:
 class StepController:
 
   def __init__(self, size_x, size_y):
-    self.max_steps = 2 * size_x * size_y
-    self.step = 1
+    self.__max_steps = 2 * size_x * size_y
+    self.__step = 1
 
   def progress(self):
-    self.step += 1
-    if self.step > self.max_steps:
+    self.__step += 1
+    if self.__step > self.__max_steps:
       print('Something went wrong?')
 
 
@@ -188,37 +188,46 @@ class CurrentCell:
   def __init__(self, size_x, size_y, mazeDrawer):
     self.__size_x = size_x
     self.__size_y = size_y
-    self.backing = False
+    self.__backing = False
 
-    self.mazeDrawer = mazeDrawer
+    self.__mazeDrawer = mazeDrawer
 
     # starting cell
-    self.x = randint(0, size_x - 1)
-    self.y = randint(0, size_y - 1)
+    self.__x = randint(0, size_x - 1)
+    self.__y = randint(0, size_y - 1)
 
-    self.marker = pyplot.Circle((self.x + 0.5, self.y + 0.5), radius=0.4, fc='y')
-    pyplot.gca().add_patch(self.marker)
-    self.mazeDrawer.drawClosedCell(self.x, self.y)
+    self.__marker = pyplot.Circle((self.__x + 0.5, self.__y + 0.5), radius=0.4, fc='y')
+    pyplot.gca().add_patch(self.__marker)
+    self.__mazeDrawer.drawClosedCell(self.__x, self.__y)
+  
+  def get_x(self):
+    return self.__x
+  
+  def get_y(self):
+    return self.__y
+  
+  def get_backing(self):
+    return self.__backing
 
   def redraw(self):
-    visitCell(self.x, self.y)
-    self.marker.center = (self.x + 0.5, self.y + 0.5)
-    self.marker.radius = self.getDecreasingRadius()
+    visitCell(self.__x, self.__y)
+    self.__marker.center = (self.__x + 0.5, self.__y + 0.5)
+    self.__marker.radius = self.__getDecreasingRadius()
     #pyplot.savefig('maze\maze_{0:03}.png'.format(steps.step))
   
   def moveForward(self, new_x, new_y):
-    self.mazeDrawer.drawClosedCell(new_x, new_y)
-    self.mazeDrawer.drawOpening(self.x, self.y, new_x, new_y)
-    self.x = new_x
-    self.y = new_y
-    self.backing = False
+    self.__mazeDrawer.drawClosedCell(new_x, new_y)
+    self.__mazeDrawer.drawOpening(self.__x, self.__y, new_x, new_y)
+    self.__x = new_x
+    self.__y = new_y
+    self.__backing = False
 
   def goBack(self, old_x, old_y):
-    self.x = old_x
-    self.y = old_y
-    self.backing = True
+    self.__x = old_x
+    self.__y = old_y
+    self.__backing = True
 
-  def getDecreasingRadius(self):
+  def __getDecreasingRadius(self):
     distance = len(visitedCells)
     """
     assume R1 radius at D1% of max distance, R2 radius at D2% of max distance
@@ -245,7 +254,7 @@ def generateMaze(size_x, size_y, mazeDrawer):
 
     steps.progress()
     
-    nextCell = mazeRules.getNextCell(currentCell.x, currentCell.y)
+    nextCell = mazeRules.getNextCell(currentCell.get_x(), currentCell.get_y())
     
     if nextCell.noValidMovement:
       # no direction is possible, go back
@@ -255,7 +264,7 @@ def generateMaze(size_x, size_y, mazeDrawer):
       removeCurrentCellAndIgnoreIt = visitedCells.pop()
       previousCell = visitedCells.pop()
       
-      farthestDeadEnd.drawDeadEnd(currentCell.backing, currentCell.x, currentCell.y)
+      farthestDeadEnd.drawDeadEnd(currentCell.get_backing(), currentCell.get_x(), currentCell.get_y())
 
       currentCell.goBack(previousCell[0], previousCell[1])
 
