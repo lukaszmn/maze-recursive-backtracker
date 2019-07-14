@@ -46,8 +46,10 @@ class MazeDrawer:
 
 
   def __drawBackground(self, ratio):
-    scale = max(self.__size_x, self.__size_y) / ratio
+    scale = max(self.__size_x, self.__size_y) / ratio / 2
     pyplot.figure(figsize=(self.__size_x / scale, self.__size_y / scale))
+
+    pyplot.rcParams['font.size'] = 20
 
     #pyplot.xticks([])
     #pyplot.yticks([])
