@@ -34,5 +34,4 @@ class FarthestDeadEnd:
           self.__marker.radius = radius
 
   def __getIncreasingRadius(self, distance):
-    distance = self.__mazeRules.getPathLength()
     return min(0.4, 0.5 * distance / self.__size_x / self.__size_y)
