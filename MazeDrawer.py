@@ -34,6 +34,8 @@ class MazeDrawer:
       else:
         self.__clearLine(old_x, old_y, old_x, old_y + 1)
 
+  def saveFrame(self, step):
+    pyplot.savefig('maze\\maze_{0:03}.png'.format(step))
 
   def __line(self, x1, y1, x2, y2):
     pyplot.plot([x1, x2], [y1, y2], color='white')

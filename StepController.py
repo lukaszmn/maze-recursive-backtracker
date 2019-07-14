@@ -8,3 +8,6 @@ class StepController:
     self.__step += 1
     if self.__step > self.__max_steps:
       print('Something went wrong?')
+
+  def get_step(self):
+    return self.__step

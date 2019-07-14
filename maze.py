@@ -24,6 +24,9 @@ def generateMaze(size_x, size_y):
   while True:
     currentCell.redraw()
 
+    # create 'maze' subfolder before running
+    mazeDrawer.saveFrame(steps.get_step())
+
     steps.progress()
     
     nextCell = mazeRules.getNextCell(currentCell.get_x(), currentCell.get_y())
@@ -43,4 +46,4 @@ def generateMaze(size_x, size_y):
       currentCell.moveForward(nextCell.new_x, nextCell.new_y)
 
 
-generateMaze(10, 6)
+generateMaze(20,10)

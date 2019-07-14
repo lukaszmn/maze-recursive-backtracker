@@ -33,7 +33,6 @@ class CurrentCell:
     self.__mazeRules.visitCell(self.__x, self.__y)
     self.__marker.center = (self.__x + 0.5, self.__y + 0.5)
     self.__marker.radius = self.__getDecreasingRadius()
-    #pyplot.savefig('maze\maze_{0:03}.png'.format(steps.step))
   
   def moveForward(self, new_x, new_y):
     self.__mazeDrawer.drawClosedCell(new_x, new_y)
